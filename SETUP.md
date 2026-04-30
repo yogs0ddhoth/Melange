@@ -5,6 +5,26 @@ initialization below. Both paths produce an identical result — choose one.
 
 ---
 
+## Git History
+
+If you **cloned** this repository directly (rather than using GitHub's "Use this template"
+button), your project's git log contains Melange's own development commits. These are
+template-internal and unrelated to your project.
+
+To start with a clean history before your first commit:
+
+```bash
+git checkout --orphan clean-main
+git add -A
+git commit -m "chore: initialize project from Melange template"
+git branch -D main
+git branch -m main
+```
+
+If you used "Use this template" on GitHub, your history is already clean — skip this.
+
+---
+
 ## Path 1 — Claude-assisted (recommended)
 
 **Prerequisites:** Claude Code installed and open in this directory.

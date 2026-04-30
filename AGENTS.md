@@ -53,6 +53,16 @@ Priority: `.claude/memory/MEMORY.md` governs current state and confirmed standar
 govern rationale and historical context. When they conflict, MEMORY.md wins — but never
 edit or delete an ADR; they are append-only.
 
+**Two-tier ADR structure (Melange template only):**
+When working on the Melange template itself, there are two ADR directories:
+- `docs/adr/` — project-layer ADRs for the initialized project (starts empty; write here
+  for project-level decisions)
+- `docs/adr/melange/` — template-layer ADRs documenting Melange's own design decisions
+  (deleted from initialized projects during `/init`; write here for template decisions)
+
+If you are working in an initialized project, `docs/adr/melange/` will not exist —
+that is correct and expected.
+
 ## Build and Test
 
 Read the Commands table in `CLAUDE.md` for the project's actual build and test commands.

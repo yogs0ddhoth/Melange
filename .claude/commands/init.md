@@ -4,6 +4,8 @@ Initialize this Melange template for: $ARGUMENTS
 
 Read `.claude/skills/init/SKILL.md` and follow its process exactly.
 
+Supported flags: `--full` (default), `--governance-only`, `--commands-only`. See SKILL.md for behavior.
+
 ## Sequence
 
 1. **Guard** — check CLAUDE.md for `{{` strings; if none, report already initialized and exit
