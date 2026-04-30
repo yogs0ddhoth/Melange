@@ -1,6 +1,6 @@
-# Template Initialization
+# Project Setup
 
-This project was scaffolded from the Melange template. Before writing any code, complete
+This project was scaffolded from Melange. Before writing any code, complete
 initialization below. Both paths produce an identical result — choose one.
 
 ---
@@ -9,14 +9,14 @@ initialization below. Both paths produce an identical result — choose one.
 
 If you **cloned** this repository directly (rather than using GitHub's "Use this template"
 button), your project's git log contains Melange's own development commits. These are
-template-internal and unrelated to your project.
+framework-internal and unrelated to your project.
 
 To start with a clean history before your first commit:
 
 ```bash
 git checkout --orphan clean-main
 git add -A
-git commit -m "chore: initialize project from Melange template"
+git commit -m "chore: initialize project from Melange"
 git branch -D main
 git branch -m main
 ```
@@ -76,7 +76,7 @@ git push -u origin main
 
 ### 3. Fill in `CLAUDE.md`
 
-Replace every `{{PLACEHOLDER}}` with real values. Delete the template instruction comment
+Replace every `{{PLACEHOLDER}}` with real values. Delete the framework instruction comment
 block at the top when done.
 
 | Placeholder | What to put |
@@ -124,7 +124,7 @@ need entries here.
 
 - Replace `{{LANGUAGE_AND_STACK}}` with your stack (e.g., `Go 1.22, PostgreSQL 15`)
 - Replace `{{CURRENT_PHASE}}` with `Phase 00 — Foundation (not started)`
-- Add `**Template version:** <contents of TEMPLATE_VERSION>` to the Core Facts section
+- Add `**Framework version:** <contents of TEMPLATE_VERSION>` to the Core Facts section
 - Add any non-obvious constraints discovered during ideation to the rules section
 
 ### 6. Fill in `docs/planning/PROJECT_ROADMAP.md`
@@ -136,7 +136,7 @@ from ideation. Remove unused `{{PHASE_XX}}` rows.
 ### 7. Fill in `README.md`
 
 Replace the `{{PROJECT_NAME}}` h1 and `{{PROJECT_DESCRIPTION}}` paragraph. Remove the
-"Initializing this template?" notice line. Fill in Getting Started as the project develops.
+"New to Melange?" notice line. Fill in Getting Started as the project develops.
 
 ### 8. Verify hooks
 
@@ -165,7 +165,7 @@ Use this to confirm init is complete before starting development.
 
 - [ ] No `{{PLACEHOLDER}}` strings remain in CLAUDE.md, README.md, MEMORY.md, or PROJECT_ROADMAP.md
 - [ ] `.claude/settings.json` has a non-empty `permissions.allow` array
-- [ ] `.claude/memory/MEMORY.md` Core Facts section has real values (stack, current phase, template version)
+- [ ] `.claude/memory/MEMORY.md` Core Facts section has real values (stack, current phase, framework version)
 - [ ] `docs/planning/PROJECT_ROADMAP.md` has real phase descriptions
 - [ ] Git remote is set (`git remote -v` shows your repo URL)
 - [ ] Hooks verified (INSTRUCTIONS header appears in Claude Code)

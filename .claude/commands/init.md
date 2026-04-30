@@ -1,6 +1,6 @@
 # /init
 
-Initialize this Melange template for: $ARGUMENTS
+Initialize this Melange framework for: $ARGUMENTS
 
 Read `.claude/skills/init/SKILL.md` and follow its process exactly.
 

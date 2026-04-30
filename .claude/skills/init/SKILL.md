@@ -1,13 +1,13 @@
 # Init Skill
 
-Initialize a Melange template for a specific project. Run once, on an uninitialized
+Initialize a Melange framework for a specific project. Run once, on an uninitialized
 repository. The end state is identical to completing the manual path in SETUP.md.
 
 ## When to Invoke
 
-- First session on a freshly cloned Melange template
+- First session on a freshly cloned Melange framework
 - When `{{PLACEHOLDER}}` strings are still present in CLAUDE.md
-- Retrofit: when adopting the template on an existing codebase (see Retrofit Mode below)
+- Retrofit: when adopting the framework on an existing codebase (see Retrofit Mode below)
 
 ## Guard: already initialized?
 
@@ -84,7 +84,7 @@ Check for any of the following in the working directory:
 - `Cargo.lock` → Cargo (Rust)
 
 If any of these exist, this is a **retrofit** — an existing codebase is adopting the
-template. In retrofit mode, the standard Phase 1 (Ideation) and Phase 2 (Technical
+framework. In retrofit mode, the standard Phase 1 (Ideation) and Phase 2 (Technical
 Interview) are replaced by the Retrofit Detection and Confirmation flow described below.
 
 Notify the user:
@@ -389,7 +389,7 @@ as N/A and note it in the verification gate output so the user knows to revisit 
 
 From the ideation scope and complexity estimate, derive roadmap phases:
 
-- Phase 00 is always "Foundation — project setup, CI, core types" (pre-filled in the template)
+- Phase 00 is always "Foundation — project setup, CI, core types" (pre-filled by Melange)
 - Add 2–4 more phases based on complexity: what must be built, in what order, at what granularity
 - Each phase name is one line: capability delivered, not implementation detail
 - S complexity → 2 total phases; M → 3; L → 4; XL → 4–5
@@ -427,14 +427,14 @@ value or remove the row/section.
 **(`--full` mode only)**
 - `{{PROJECT_NAME}}` h1
 - `{{PROJECT_DESCRIPTION}}` paragraph
-- Remove the `> **Initializing this template?**` notice line
+- Remove the `> **New to Melange?**` notice line
 
 ### `.claude/memory/MEMORY.md`
 
 **(`--full` mode: full write; `--governance-only`: stack entry only; `--commands-only`: skip)**
 - `{{LANGUAGE_AND_STACK}}` — from Phase 2 or Retrofit Confirmation
 - `{{CURRENT_PHASE}}` — "Phase 00 — Foundation (not started)" (`--full` only)
-- `**Template version:**` — read `TEMPLATE_VERSION` from the repo root and add the value
+- `**Framework version:**` — read `TEMPLATE_VERSION` from the repo root and add the value
   to Core Facts (`--full` only)
 - Add non-obvious constraints from ideation risks to the Non-Negotiable Rules section
   (`--full` only)
@@ -478,13 +478,13 @@ git remote add origin <url>
 
 Do NOT push — pushing requires explicit user approval and is outside init scope.
 
-### Template-layer cleanup (all modes)
+### Framework-layer cleanup (all modes)
 
 Delete files that belong to Melange's own development and must not appear in initialized
 projects. These deletions apply in all modes (`--full`, `--governance-only`, `--commands-only`).
 
 ```bash
-# Template-layer ADRs — Melange design decisions, not the project's decisions
+# Framework-layer ADRs — Melange design decisions, not the project's decisions
 rm -rf docs/adr/melange/
 
 # Initialization guide — consumed, no longer needed
@@ -537,7 +537,7 @@ Placeholders:      [PASS | FAIL] — no {{ strings in CLAUDE.md, README.md, MEMO
 Template comments: [PASS | FAIL] — no <!-- TEMPLATE blocks remaining in any tracked file
 Permissions:       [PASS | FAIL] — .claude/settings.json has non-empty permissions.allow array
 Memory:            [PASS | FAIL] — MEMORY.md Core Facts has real stack and phase values
-Template version:  [PASS | FAIL] — MEMORY.md Core Facts includes "Template version:" matching TEMPLATE_VERSION
+Framework version: [PASS | FAIL] — MEMORY.md Core Facts includes "Framework version:" matching TEMPLATE_VERSION
 Roadmap:           [PASS | FAIL] — PROJECT_ROADMAP.md has no {{PHASE_XX}} placeholders remaining
 Git remote:        [PASS | SKIP] — git remote -v shows a remote (SKIP if user chose to skip)
 Cleanup:           [PASS | FAIL] — docs/adr/melange/ does not exist; SETUP.md does not exist; TEMPLATE.md does not exist
@@ -561,7 +561,7 @@ Memory (stack):    [PASS | FAIL] — MEMORY.md has stack entry (phase entry not 
 
 Cleanup:           [PASS | FAIL] — docs/adr/melange/ does not exist; SETUP.md does not exist; TEMPLATE.md does not exist
 
-SKIPPED (governance-only): Commands table, Permissions, Roadmap, README, Template version
+SKIPPED (governance-only): Commands table, Permissions, Roadmap, README, Framework version
 
 RESULT: [INIT COMPLETE | BLOCKED]
 
@@ -580,7 +580,7 @@ Template comments: [PASS | FAIL] — no <!-- TEMPLATE blocks remaining in any tr
 
 Cleanup:           [PASS | FAIL] — docs/adr/melange/ does not exist; SETUP.md does not exist; TEMPLATE.md does not exist
 
-SKIPPED (commands-only): Protected files, Roadmap, README, Memory, Template version
+SKIPPED (commands-only): Protected files, Roadmap, README, Memory, Framework version
 
 RESULT: [INIT COMPLETE | BLOCKED]
 

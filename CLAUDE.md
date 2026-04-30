@@ -1,7 +1,7 @@
 # {{PROJECT_NAME}}
 
 <!-- TEMPLATE INSTRUCTIONS (delete this block when filling in)
-  This is a Melange universal project template. Replace every {{PLACEHOLDER}} with your
+  This is a Melange project framework. Replace every {{PLACEHOLDER}} with your
   project-specific content. Sections marked [UNIVERSAL] encode production-grade discipline
   that applies to any stack — do not change them without a strong reason.
 
@@ -77,6 +77,10 @@ git checkout -b feature-name
 git push -u origin feature-name
 gh pr create --title "Brief description" --body "Details"
 ```
+
+When developing Melange itself (skills, hooks, governance files — the framework layer), use
+the `melange/` prefix: `melange/feature-name`. Use standard type prefixes (`feat/`, `fix/`,
+etc.) for initialized-project work.
 
 ### Commit Convention [UNIVERSAL]
 
