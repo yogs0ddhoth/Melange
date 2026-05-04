@@ -24,10 +24,10 @@ in ADRs or CLAUDE.md.
 ## README as Human Entrypoint
 
 `README.md` is the human entrypoint to every source of truth in this repository — both
-project-level (commands, ADRs, roadmap) and template-level (ETHOS.md, TEMPLATE.md,
+project-level (commands, ADRs, roadmap) and framework-level (ETHOS.md, TEMPLATE.md,
 TEMPLATE_VERSION). It is injected into every Claude session via `@README.md` in CLAUDE.md.
 
-**Rules when modifying the template:**
+**Rules when modifying the framework:**
 
 - Every governing file must appear in README.md's **Key files** table before it is
   referenced from CLAUDE.md, AGENTS.md, or any skill.
@@ -39,6 +39,12 @@ TEMPLATE_VERSION). It is injected into every Claude session via `@README.md` in 
 This principle applies equally to initialized projects: any new governing document a
 project introduces (security policy, API contract, ops runbook) must be registered in
 README.md before being referenced elsewhere.
+
+## Branch Naming
+
+When working on Melange itself, use the `melange/` prefix for all branches:
+`melange/feature-name`. This distinguishes framework-layer development from
+initialized-project work, which uses standard prefixes (`feat/`, `fix/`, etc.).
 
 ## Before Starting Any Task
 
@@ -52,6 +58,16 @@ README.md before being referenced elsewhere.
 Priority: `.claude/memory/MEMORY.md` governs current state and confirmed standards. ADRs
 govern rationale and historical context. When they conflict, MEMORY.md wins — but never
 edit or delete an ADR; they are append-only.
+
+**Two-tier ADR structure (Melange framework only):**
+When working on the Melange framework itself, there are two ADR directories:
+- `docs/adr/` — project-layer ADRs for the initialized project (starts empty; write here
+  for project-level decisions)
+- `docs/adr/melange/` — framework-layer ADRs documenting Melange's own design decisions
+  (deleted from initialized projects during `/init`; write here for framework decisions)
+
+If you are working in an initialized project, `docs/adr/melange/` will not exist —
+that is correct and expected.
 
 ## Build and Test
 
@@ -165,8 +181,8 @@ Never claim DONE without reading actual output. "Should work" is not a signal.
 
 | Skill | Purpose |
 |-------|---------|
-| `init` | One-time template initialization: ideation → interview → fill placeholders → verify |
-| `configure` | Modify template configuration (skills, commands, hooks, permissions, CLAUDE.md) with UNIVERSAL/PROJECT guardrails |
+| `init` | One-time framework initialization: ideation → interview → fill placeholders → verify |
+| `configure` | Modify framework configuration (skills, commands, hooks, permissions, CLAUDE.md) with UNIVERSAL/PROJECT guardrails |
 | `ideation` | Scope a feature, define success criteria, estimate complexity |
 | `research` | Authoritative technical answers before committing to an approach |
 | `planning` | Phase-by-phase plan with human approval checkpoint before coding |

@@ -31,3 +31,10 @@ status line of the old one. Never delete or edit the content of a past ADR.
 | # | Title | Status | Date | Summary |
 |---|-------|--------|------|---------|
 | — | — | — | — | No ADRs yet. |
+
+---
+
+> **Template note:** If you are working on the Melange template itself (not an initialized
+> project), template-layer ADRs about Melange's own design live in `docs/adr/melange/`.
+> This directory is deleted during `/init` so initialized projects always start with a
+> clean ADR index.

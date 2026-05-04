@@ -2,7 +2,7 @@
 
 {{PROJECT_DESCRIPTION}}
 
-> **Initializing this template?** See [SETUP.md](SETUP.md) for Claude-assisted and manual setup paths.
+> **New to Melange?** See [SETUP.md](SETUP.md) for Claude-assisted and manual setup paths.
 
 ---
 
@@ -205,7 +205,7 @@ Claude runs a pre-deploy checklist (quality gate passed, changelog present, no u
 | `docs/adr/` | Architecture Decision Records — explains _why_ the project is structured the way it is |
 | `docs/planning/PROJECT_ROADMAP.md` | Current phase status |
 | `CHANGELOG.md` | User-facing release notes |
-| `TEMPLATE.md` | Template manifest: lists every universal file, every project file, and the step-by-step upgrade guide for pulling in new template versions |
-| `TEMPLATE_VERSION` | Canonical template version anchor — stamped into `MEMORY.md` at `/init` time so initialized projects can trace their baseline |
+| `TEMPLATE.md` | Framework manifest: lists every universal file, every project file, and the step-by-step upgrade guide for pulling in new framework versions |
+| `TEMPLATE_VERSION` | Canonical framework version anchor — stamped into `MEMORY.md` at `/init` time so initialized projects can trace their baseline |
 
 **Team note:** `.claude/memory/MEMORY.md` is git-tracked. When a Claude session discovers a non-obvious constraint or confirmed standard, it commits an update to this file. Treat merge conflicts in MEMORY.md like any other conflict — keep whichever version reflects current truth, and manually merge if both sides added valid facts.

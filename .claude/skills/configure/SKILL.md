@@ -1,6 +1,6 @@
 # Configure Skill
 
-Modify the Melange template configuration according to developer instruction.
+Modify the Melange framework configuration according to developer instruction.
 Handles: skills, commands, hooks, permissions, CLAUDE.md content, and AGENTS.md.
 
 ## Classification: PROJECT vs UNIVERSAL

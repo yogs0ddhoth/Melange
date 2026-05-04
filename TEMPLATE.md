@@ -1,11 +1,11 @@
-# Melange Template Manifest
+# Melange Framework Manifest
 
-Current template version: see `TEMPLATE_VERSION`
+Current framework version: see `TEMPLATE_VERSION`
 
 ## Universal files
 
-These files are owned by the template and remain identical to their template-repo
-counterparts after `/init`. They are safe to overwrite when pulling in a template
+These files are owned by the framework and remain identical to their framework-repo
+counterparts after `/init`. They are safe to overwrite when pulling in a framework
 upgrade — they contain no project-specific content.
 
 ```
@@ -70,8 +70,8 @@ TEMPLATE_VERSION
 
 ## Project files
 
-These files are modified during `/init` and diverge from the template immediately.
-Do not overwrite them during a template upgrade — merge changes manually.
+These files are modified during `/init` and diverge from the framework immediately.
+Do not overwrite them during a framework upgrade — merge changes manually.
 
 ```
 CLAUDE.md
@@ -87,15 +87,15 @@ docs/security/
 
 ## Upgrading an initialized project
 
-To pull in improvements from a newer template version:
+To pull in improvements from a newer framework version:
 
 1. Identify the version your project was initialized from (`MEMORY.md` → Core Facts →
-   `Template version`)
-2. Find the template repo tag for that version and the target version
+   `Framework version`)
+2. Find the framework repo tag for that version and the target version
 3. Run `git diff <old-tag>..<new-tag> -- <universal-file>` for each universal file you
    want to review
 4. Apply changes to universal files — they contain no project-specific content, so a
    direct overwrite is safe
 5. For project files (especially `CLAUDE.md`), review the diff and merge manually —
    your project-specific content must be preserved
-6. Update `Template version` in `MEMORY.md` to the new version
+6. Update `Framework version` in `MEMORY.md` to the new version

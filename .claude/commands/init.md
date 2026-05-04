@@ -1,8 +1,10 @@
 # /init
 
-Initialize this Melange template for: $ARGUMENTS
+Initialize this Melange framework for: $ARGUMENTS
 
 Read `.claude/skills/init/SKILL.md` and follow its process exactly.
+
+Supported flags: `--full` (default), `--governance-only`, `--commands-only`. See SKILL.md for behavior.
 
 ## Sequence
 

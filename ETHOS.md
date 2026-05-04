@@ -1,7 +1,7 @@
 # Melange Ethos
 
 Operating principles that apply to every agent, every session, every project built on this
-template. These are not guidelines — they are constraints that shape how work gets done.
+framework. These are not guidelines — they are constraints that shape how work gets done.
 
 ---
 
