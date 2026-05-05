@@ -151,6 +151,55 @@ On Windows: hooks run via Git Bash — no chmod needed.
 Verify by opening Claude Code and sending any message. You should see
 `### INSTRUCTIONS (from .../CLAUDE.md)` in the response context.
 
+### Windows: MCP server prerequisites
+
+Two of the three MCP servers need one-time setup on Windows.
+
+#### `github` MCP — GITHUB_TOKEN
+
+The MCP server requires a GitHub personal access token with `repo` scope. A shell `export`
+does not reach Claude Code's child processes on Windows. Use the Windows user-environment
+registry instead — it propagates to all processes including VS Code, Windows Terminal, and
+Claude Code desktop:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", "ghp_...", "User")
+```
+
+Restart Claude Code after setting. Verify the token is live:
+
+```powershell
+[System.Environment]::GetEnvironmentVariable("GITHUB_TOKEN", "User")
+```
+
+Alternatively, add it to `.claude/settings.local.json` (gitignored — safe to write secrets
+here):
+
+```json
+{
+  "env": {
+    "GITHUB_TOKEN": "ghp_..."
+  }
+}
+```
+
+#### `context-creator` MCP — Node.js PATH
+
+`context-creator` runs via `npx`. On Windows, `npx` is a `.cmd` file that only resolves
+correctly when Node.js is in the system-level PATH. Install Node.js from **nodejs.org**
+(the official installer) — do not use nvm-windows or fnm, as their PATH injection is
+session-scoped and does not propagate to subprocess spawners like Claude Code.
+
+Verify after installing:
+
+```powershell
+where npx
+```
+
+If `where npx` returns a path (e.g. `C:\Program Files\nodejs\npx.cmd`), `context-creator`
+will work. If not, reinstall Node.js from nodejs.org and open a new terminal before
+retrying.
+
 ### 9. Delete this file
 
 ```bash

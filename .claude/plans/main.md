@@ -1,261 +1,206 @@
-# Implementation Plan: Adopt-Codebase
+# IMPLEMENTATION PLAN: MCP Server Environment Fix
 
-**Feature:** Enhance Retrofit Mode in `/init` to auto-analyze existing codebases  
-**Branch:** main  
-**Complexity:** M (revised from initial L estimate — all changes are skill markdown edits, not code)
-
----
-
-## Overview
-
-Enhance the Melange `/init` skill's Retrofit Mode to replace the blank 13-question interview with a
-pre-populated confirmation screen built from deterministic manifest analysis and constrained LLM
-inference. Add three discrete adoption modes (`--full`, `--governance-only`, `--commands-only`) to
-give developers control over how much of CLAUDE.md gets populated.
-
-All changes are to skill instruction files — no shell scripts, no application code.
+**Feature:** MCP server fix — template-only: gitignore, hook fix, token docs, SETUP.md prereqs, TEMPLATE.md upgrade path enablement  
+**Branch to create:** `melange/mcp-server-fix` (from `main`)  
+**Complexity:** S  
+**Date:** 2026-05-05
 
 ---
 
-## ADR Candidates
+## Context
 
-Three ADRs required — author these with `/adr` **before Phase 1 implementation begins**:
+Two of three MCP servers (`github`, `context-creator`) fail in every new Claude Code session:
+- `github`: `${GITHUB_TOKEN}` in `.mcp.json` requires the env var in the process environment at launch; no current mechanism injects it
+- `context-creator`: `npx` is a `.cmd` file on Windows — not directly executable when Claude Code spawns child processes without a shell
 
-1. **Discrete modes vs. adoption spectrum** — choosing 3 explicit modes over a continuous slider
-   has UX and maintenance implications. Research showed discrete flags (`--config-only`,
-   `--migrate`, `--dry-run`) are the pattern production tools converge on; record why.
+Research confirmed (2026-05-05):
+- `settings.local.json` `env` key propagates to MCP child processes via OS inheritance (empirically confirmed)
+- Most robust Windows token injection: `[System.Environment]::SetEnvironmentVariable`
+- `npx` fix is documentation-only — no `.mcp.json` change needed
+- Pre-existing bug: `inject_claude_md.sh` runs `source .env` with `set -euo pipefail` — fails hard if `.env` absent in a fresh clone
 
-2. **Deterministic-first, LLM-for-gaps hybrid** — the choice to use file-signature scanning as
-   primary detector and LLM only for structurally ambiguous questions (which npm script is
-   canonical? which directory is auth?) is architecturally significant and should be recorded.
+All changes are in the Melange template repo only. Initialized projects receive the fix via the TEMPLATE.md upgrade path. `.mcp.json` and `.gitignore` are not currently listed in TEMPLATE.md — adding them to universal files is what enables the upgrade path.
 
-3. **Secret-scan guard: opt-in file body analysis** — the privacy rationale for excluding file
-   body content from LLM context by default (Samsung 2023 credentials incident) should be recorded
-   so future contributors know why the default is restrictive.
-
----
-
-## Phase 1 — Deterministic Detection Layer + Confirmation Screen
-
-**Goal:** Retrofit Mode reads manifests, lock files, and CI configs to pre-fill all six command
-slots before showing a confirmation screen. Nothing writes to CLAUDE.md until confirmed.
-
-### Files modified
-- `.claude/skills/init/SKILL.md` — expand the Retrofit Mode section
-
-### Changes
-
-**Expand manifest detection to lock files (higher confidence):**
-- `yarn.lock`, `package-lock.json`, `pnpm-lock.yaml` → lock file type identifies the exact
-  package manager (locks are ground truth per Renovate/Dependabot pattern)
-- `poetry.lock`, `Pipfile.lock` → Python with Poetry/Pipenv
-- `Gemfile.lock` → Ruby
-- `Cargo.lock` → Rust
-
-**Add CI config detection as supplemental signal:**
-- `.github/workflows/*.yml` — parse `run:` lines to surface canonical commands
-- `.gitlab-ci.yml`, `Jenkinsfile`, `Makefile` — additional signal sources
-- Label CI-sourced values as `DETECTED (CI config)`
-
-**Per-stack extraction rules (deterministic, no LLM):**
-
-| Stack | Build | Test | Lint | Format |
-|-------|-------|------|------|--------|
-| Node.js | `scripts.build` from package.json | `scripts.test` | `scripts.lint` | `scripts.format` or `scripts.prettier` |
-| Python (pyproject) | `[tool.taskipy]` build task | test task | lint task | format task |
-| Python (requirements) | INFERRED `python -m build` | INFERRED `pytest` | INFERRED `flake8` / `ruff` | INFERRED `black` |
-| Go | INFERRED `go build ./...` | INFERRED `go test ./...` | INFERRED `golangci-lint run` | INFERRED `gofmt -l .` |
-| Rust | INFERRED `cargo build` | INFERRED `cargo test` | INFERRED `cargo clippy` | INFERRED `cargo fmt` |
-| Ruby (Rails) | INFERRED `bundle exec rails assets:precompile` | INFERRED `bundle exec rspec` | INFERRED `bundle exec rubocop` | INFERRED `bundle exec rubocop -A` |
-| JVM/Gradle | INFERRED `./gradlew build` | INFERRED `./gradlew test` | INFERRED `./gradlew checkstyleMain` | N/A |
-| JVM/Maven | INFERRED `mvn package` | INFERRED `mvn test` | INFERRED `mvn checkstyle:check` | N/A |
-
-**Label discipline:**
-- `DETECTED (source)` — value read directly from a file; evidence source shown (e.g., `package.json scripts.test`)
-- `INFERRED` — LLM-reasoned default for this stack; no file evidence
-
-**Monorepo ambiguity resolution protocol:**
-- If workspace config files exist (`pnpm-workspace.yaml`, `turbo.json`, `nx.json`, `lerna.json`),
-  show the detected workspace files in the confirmation screen and ask a single targeted question:
-  "Which workspace is the primary application? (e.g., `apps/web` or `packages/api`)"
-- Halt at this question — do not proceed to write commands until the user responds
-- Do not attempt partial auto-detection across workspaces; treat the answer as the root for all
-  subsequent command extraction
-
-**Updated Phase 2 confirmation screen (Retrofit Mode):**
-
-Replace the blank 13-question interview with a pre-filled confirmation table:
-
-```
-I analyzed your codebase and pre-filled the following values. Correct anything that's wrong
-and add N/A for anything that doesn't apply.
-
-DETECTED / INFERRED values — confirm or correct:
-
-1. Language and stack:      [value] [DETECTED from package.json / INFERRED]
-2. Build command:           [value] [DETECTED from package.json scripts.build]
-3. Test command:            [value] [DETECTED from package.json scripts.test]
-4. Lint command:            [value] [DETECTED from package.json scripts.lint]
-5. Format command:          [value] [INFERRED]
-6. Deploy command:          [value or N/A] [DETECTED from .github/workflows/deploy.yml / INFERRED]
-7. Docs command:            N/A [INFERRED — no docs tooling detected]
-8. Auth/session code path:  [see protected files section below]
-9. Core data model path:    [see protected files section below]
-10. Privacy-sensitive path: [see protected files section below]
-11. Hot path:               [see protected files section below]
-12. Migration path:         [see protected files section below]
-13. Git remote URL:         [DETECTED from git remote -v / skip if none]
-
-Reply with corrections. Use "ok" to accept the pre-filled values as-is.
-```
-
-### Completion signal
-Running `/init` on a Node.js project with `package.json` shows pre-filled command values labeled
-with their source. Developer can reply "ok" without re-typing any commands they already have.
-
-### Estimate
-2–3 hours (instruction writing for 8 stack paths + confirmation screen redesign)
-
----
-
-## Phase 2 — Protected Files Inference + Adoption Modes
-
-**Goal:** Seed the protected files table from git history + constrained LLM, and implement the
-three adoption modes with scope-enforcement.
-
-### Files modified
-- `.claude/skills/init/SKILL.md` — protected files inference + mode-gate logic + all flag enforcement
-  (all flag behavior lives here — `init.md` remains a pure router per existing architectural contract)
-- `.claude/commands/init.md` — one-line flag reference only: "Supported flags: --full (default),
-  --governance-only, --commands-only. See SKILL.md for behavior." No scope tables, no enforcement.
-
-### Changes: protected files inference
-
-Add a pre-Phase-2 analysis step in Retrofit Mode:
-
-1. **Shallow-clone fallback:** check commit depth with `git rev-list --count HEAD`. If fewer than
-   10 commits exist, skip the most-modified-files step entirely — shallow clones produce misleading
-   churn signals. Label all protected file suggestions as `INFERRED (directory listing only)`.
-2. Otherwise, run `git log --diff-stat --format="" | grep " | " | awk '{print $1}' | sort | uniq -c | sort -rn | head -20`
-   to surface the 20 most-modified files (structural content only — no file body sent to LLM)
-3. Present to LLM: top-level directory listing + most-modified file names
-4. Ask LLM to classify each directory by semantic role: auth, data model, privacy-sensitive,
-   hot path, migrations — or "no signal" if unclear
-5. Label all output `INFERRED` — present as explicit draft:
-
-```
-Protected files — INFERRED draft (review carefully):
-
-Tier 1 (ask before any change):
-  - src/auth/           [INFERRED: auth — high git churn, directory name]
-  - src/models/user.ts  [INFERRED: data model — most-modified file]
-
-Tier 2 (explain why alternatives are insufficient):
-  - src/api/search.ts   [INFERRED: hot path — highest churn]
-  - migrations/         [INFERRED: migrations — directory name]
-
-⚠️  This is a draft. Add any files you know are security-critical that are not listed.
-    Remove any that are misclassified.
-```
-
-6. Do not write the protected files table to CLAUDE.md until developer explicitly confirms it
-
-### Changes: adoption modes
-
-**All flag logic lives in `SKILL.md` — `init.md` is a router only:**
-- `/init` or `/init --full` → run all phases, populate all CLAUDE.md sections
-- `/init --governance-only` → skip Commands table; skip Phase 3 (roadmap); skip README update;
-  write only: protected files, quality requirements, privacy requirements
-- `/init --commands-only` → populate only the Commands table in CLAUDE.md; skip protected files,
-  roadmap, README changes
-
-**Mode-scope enforcement table (added to SKILL.md):**
-
-| CLAUDE.md section | `--full` | `--governance-only` | `--commands-only` |
-|-------------------|----------|--------------------|--------------------|
-| Commands table    | ✓ write  | ✗ skip             | ✓ write            |
-| Protected files   | ✓ write  | ✓ write            | ✗ skip             |
-| README update     | ✓ write  | ✗ skip             | ✗ skip             |
-| MEMORY.md         | ✓ write  | ✓ write (partial)  | ✗ skip             |
-| Roadmap           | ✓ write  | ✗ skip             | ✗ skip             |
-| Settings.json     | ✓ write  | ✗ skip             | ✓ write            |
-
-**Phase 5 gate updated:** Verification gate checks are mode-aware — missing Commands table does
-not FAIL when mode is `--governance-only`.
-
-### Completion signal
-`/init --governance-only` on a Go project: skips Commands table and roadmap, writes inferred
-protected files as draft, passes Phase 5 gate without flagging missing commands.
-`/init --commands-only`: writes only Commands table and settings.json; all other sections untouched.
-
-### Estimate
-3–4 hours (protected files inference instructions + three mode gates + Phase 5 gate update)
-
----
-
-## Phase 3 — Secret-Scan Guard
-
-**Goal:** Ensure no file body content reaches LLM context without secret-pattern pre-screening.
-
-### Files modified
-- `.claude/skills/init/SKILL.md` — add secret-scan instruction block before any LLM file analysis
-
-### Changes
-
-**Pre-check instruction (fires before any file body enters LLM context):**
-
-Before including any file body (not file names, not manifest keys) in LLM context during
-codebase analysis, check each file for:
-
-| Pattern | Example |
-|---------|---------|
-| AWS access key | `AKIA[0-9A-Z]{16}` |
-| GitHub token | `ghp_[a-zA-Z0-9]{36}` or `github_pat_` |
-| Generic secret indicators | Lines matching `SECRET=`, `TOKEN=`, `PASSWORD=`, `API_KEY=`, `PRIVATE_KEY` |
-| High-entropy strings | Any 40+ character alphanumeric string on a single line |
-
-**Behavior on match:**
-- Exclude the file from LLM context entirely
-- Add a warning to the confirmation screen showing **only the filename and match category** —
-  never the matched string, matched line, or surrounding context:
-  `⚠️  .env.example excluded from analysis — AWS key pattern detected. Review manually.`
-- Do NOT log matched content, matched strings, or any characters from the matched line
-
-**Default policy (added to SKILL.md):**
-- Send only structural content to LLM by default: file names, manifest key names, directory
-  listings, script command strings (not values)
-- File body analysis (reading actual source) requires explicit user opt-in, which must be
-  prompted before the analysis begins
-
-### Completion signal
-A codebase containing a file with `API_KEY=AKIA[fakevalue]` shows `⚠️ .env.example excluded`
-in the confirmation screen. The file's content does not appear in any LLM context.
-
-### Estimate
-1–2 hours (pattern list + exclusion instruction + warning format + default policy statement)
-
----
-
-## Simplicity Challenge
-
-Could this be one phase? All changes are to two markdown skill files. The simplest approach
-would be to write all three changes in one edit.
-
-More phases are needed because:
-1. Phase 1 (detection) provides standalone value and is the highest-churn section — wrong command
-   inferences write directly to CLAUDE.md. Verifying detection in isolation before adding modes
-   reduces defect surface.
-2. Phase 3 (secret-scan) is a security control. A privacy reviewer must audit it as a discrete
-   unit, not buried in an adoption-modes diff.
-3. Adoption modes (Phase 2) depend on knowing which sections Phase 1 populates — logical ordering,
-   not arbitrary splitting.
+**Relevant ADRs:** None existing for MCP config. Two new framework-layer ADRs required.
 
 ---
 
 ## Protected Files Check
 
-No files in this plan are in the Protected Files list. CLAUDE.md's protected file placeholders
-(`{{AUTH_FILE}}` etc.) have not been initialized — there are no guarded project files yet.
+No files in this plan appear in the Protected Files table. Melange's CLAUDE.md protected files section contains only `{{PLACEHOLDER}}` values (project uninitialized). No real guarded paths exist.
 
-The skill files being modified (`.claude/skills/init/SKILL.md`, `.claude/commands/init.md`) are
-template governance files, not listed as protected.
+**Protected files requiring approval: none.**
+
+---
+
+## Branch Prerequisite
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b melange/mcp-server-fix
+```
+
+All changes go on `melange/mcp-server-fix`.
+
+---
+
+## Phase 1 — Safety Gate
+
+**Ordering constraint:** Must complete before Phase 2. Phase 2 documentation tells users to put tokens in `settings.local.json`. That file must be gitignored before any docs reference it — otherwise `git add -A` in an initialized project could commit a secret.
+
+### Files modified
+
+- `.gitignore` — add `.claude/settings.local.json`
+- `.claude/hooks/inject_claude_md.sh` — fix `source .env`; add `GITHUB_TOKEN` warning
+
+### Change detail
+
+**.gitignore:** Add one line:
+```
+.claude/settings.local.json
+```
+
+**inject_claude_md.sh:** Two changes:
+
+1. Replace hard `source .env` with graceful version:
+   ```bash
+   # Before:
+   source .env
+   # After:
+   [ -f .env ] && source .env || true
+   ```
+
+2. Add GITHUB_TOKEN warning block (after injecting CLAUDE.md content, before final exit):
+   ```bash
+   if [ -f "$proj/.mcp.json" ] && grep -q 'GITHUB_TOKEN' "$proj/.mcp.json" 2>/dev/null; then
+     if [ -z "${GITHUB_TOKEN:-}" ]; then
+       printf "\nWARNING: GITHUB_TOKEN is not set. The 'github' MCP server will fail.\n"
+       printf "Set it in .claude/settings.local.json under the 'env' key, or run:\n"
+       printf "  [System.Environment]::SetEnvironmentVariable('GITHUB_TOKEN','ghp_...','User')\n"
+       printf "Then restart Claude Code. See CLAUDE.md > MCP Servers for full instructions.\n\n"
+     fi
+   fi
+   ```
+   The warning checks env var presence only — never logs the token value.
+
+### Protected files
+None.
+
+### Completion signal
+1. `git check-ignore .claude/settings.local.json` exits 0
+2. Running `inject_claude_md.sh` with no `.env` file present produces no error
+3. Running it with `GITHUB_TOKEN` unset produces the warning message
+4. Running it with `GITHUB_TOKEN` set produces no warning
+
+### Estimate
+45 minutes
+
+---
+
+## Phase 2 — Documentation + Framework Manifest
+
+### Files modified
+
+- `CLAUDE.md` — update MCP Servers section
+- `SETUP.md` — add Windows prerequisites section and token setup instructions
+- `TEMPLATE.md` — add `.mcp.json` and `.gitignore` to universal files list
+- `TEMPLATE_VERSION` — bump from `0.1.0` to `0.2.0`
+
+### Change detail
+
+**CLAUDE.md MCP Servers section:** Replace the last sentence:
+```
+The `github` MCP requires `export GITHUB_TOKEN=<your-token>` in your shell.
+```
+With a structured token setup block covering:
+- Windows (recommended): `[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", "ghp_...", "User")` — persists at user-environment level, inherited by all processes including VS Code, Windows Terminal, Claude Code desktop
+- All platforms (file-based): `settings.local.json` under `"env"` key (file is gitignored)
+- `context-creator` Windows prerequisite: Node.js must be installed via official installer so `npx` is in system-level PATH; verify with `where npx` in a plain terminal
+
+**SETUP.md:** Add a "### Windows: MCP server prerequisites" subsection under "### 8. Verify hooks" covering:
+- GitHub token: `SetEnvironmentVariable` command with explanation of why shell `export` is insufficient
+- Node.js PATH: require official installer; validate with `where npx`; explain why nvm-windows/fnm PATH injection doesn't propagate to subprocess spawners
+- Verification step for each
+
+**TEMPLATE.md:** In the universal files code block, add after `TEMPLATE_VERSION`:
+```
+.gitignore
+.mcp.json
+```
+Both files have no project-specific content — safe to overwrite during upgrades.
+
+**TEMPLATE_VERSION:** Bump `0.1.0` → `0.2.0` (minor — new capability for existing users: upgrade path now covers `.gitignore` and `.mcp.json`).
+
+### Protected files
+None.
+
+### Completion signal
+1. CLAUDE.md MCP section no longer mentions `export GITHUB_TOKEN`; contains both Windows and cross-platform instructions
+2. SETUP.md has the Windows prerequisites subsection with validation commands
+3. TEMPLATE.md universal files list contains `.gitignore` and `.mcp.json`
+4. `TEMPLATE_VERSION` reads `0.2.0`
+
+### Estimate
+1.5 hours
+
+---
+
+## Phase 3 — ADRs
+
+Two framework-layer architectural decisions to document. Author after implementation since decisions are already made from research.
+
+### Files created
+- `docs/adr/melange/0005-mcp-secret-injection.md`
+- `docs/adr/melange/0006-npx-mcp-command-retained.md`
+
+### Files modified
+- `docs/adr/melange/README.md` — add both entries to index
+
+### ADR 0005 — MCP secret injection: settings.local.json + Windows user env
+
+The decision to use `settings.local.json` `env` key as the file-based injection mechanism, with Windows `SetEnvironmentVariable` as the primary recommendation for Windows users.
+
+Alternatives documented: shell profile `export` (lost across non-interactive launches), launcher script (per-project wrapper; cross-platform fragile), literal token in `.mcp.json` (git-tracked; rejected), `.mcp.json` gitignored (conflicts with universal-file status).
+
+Caveat recorded: `env` key → child process propagation is empirically confirmed (mid-2025) but not explicitly documented as a guaranteed API contract. Fallback: Windows registry via `SetEnvironmentVariable`.
+
+### ADR 0006 — Retain `npx` in `.mcp.json` (not switching to `node` + pre-install)
+
+The decision to keep `"command": "npx"` and fix the Windows PATH issue via documentation rather than changing the command.
+
+Alternatives documented: `node` with absolute pre-installed path (machine-specific; breaks template portability), full path to `npx.cmd` (machine-specific), global pre-install + bare name (fragile with nvm/fnm version switches), HTTP/SSE transport (operational complexity; inappropriate for local dev).
+
+Rationale: `npx` is correct on macOS/Linux and correct on Windows with official Node.js installer. A documentation prerequisite is less disruptive than a command change that breaks cross-platform parity.
+
+### Protected files
+None.
+
+### Completion signal
+1. Both ADR files exist and are complete (decision, alternatives, rationale, date, status: Accepted)
+2. `docs/adr/melange/README.md` index shows ADR 0005 and ADR 0006
+
+### Estimate
+1 hour
+
+---
+
+## ADR Candidates
+
+- **MCP secret injection** (ADR 0005): Four credible alternatives with real trade-offs; empirically-confirmed behavior not in writing warrants recording the caveat and fallback
+- **Retain `npx` command** (ADR 0006): Decision to fix via docs rather than code; cross-platform implications; would be expensive to revisit once documentation is distributed
+
+---
+
+## Simplicity Check
+
+**Could this be one phase?** No. The gitignore entry must land before docs reference `settings.local.json`. If a developer reads the updated CLAUDE.md and adds a token before their project's `.gitignore` is updated (via the upgrade path), they could commit a secret. The phase boundary enforces the ordering constraint.
+
+**Could Phase 2 and 3 merge?** Yes — documentation and ADRs could be one phase. Split here because ADRs are governance artifacts reviewed differently from user-facing docs. The split also allows shipping Phase 2 (docs) sooner if ADR authoring takes longer.
+
+**Is three phases the minimum?** Yes: safety (Phase 1) → user-facing changes (Phase 2) → governance (Phase 3).
+
+---
+
+AWAITING HUMAN APPROVAL BEFORE PROCEEDING.
+State: PROCEED, MODIFY [description], or REJECT.
