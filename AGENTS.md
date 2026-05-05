@@ -86,9 +86,13 @@ Do not commit with warnings or test failures. Do not suppress warnings to make a
 appear clean.
 
 Commit message must follow the Conventional Commits format. See the **Commit messages**
-section of `README.md` for the type table and version bump rules. Use the type that
-accurately reflects the change — do not use `feat` for a bug fix to inflate the version
-bump, and do not use `chore` to hide a user-visible change.
+section of `README.md` for the type table, version bump rules, and co-authorship trailer
+format. Use the type that accurately reflects the change — do not use `feat` for a bug
+fix to inflate the version bump, and do not use `chore` to hide a user-visible change.
+
+Every Claude-assisted commit must include co-authorship trailers for both the human and
+the model. Populate the human identity from `git config user.name` and
+`git config user.email`.
 
 Check the diff for privacy violations before committing:
 - No raw user inputs (query strings, form values, user IDs) in log statements
