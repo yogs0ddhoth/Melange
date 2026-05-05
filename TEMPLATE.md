@@ -13,6 +13,8 @@ AGENTS.md
 ETHOS.md
 TEMPLATE.md
 TEMPLATE_VERSION
+.gitignore
+.mcp.json
 .claude/agents/performance-profiler.md
 .claude/agents/planner.md
 .claude/agents/researcher.md

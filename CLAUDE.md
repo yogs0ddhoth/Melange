@@ -209,4 +209,43 @@ Three MCP servers are configured in `.mcp.json` and available in every Claude Co
 | `github` | GitHub API — PRs, issues, reviews, checks (requires `GITHUB_TOKEN` env var) |
 | `git` | Local git operations — log, blame, diff, status with structured output |
 
-Use `context-creator` when researching unfamiliar codebases, analyzing remote repositories for patterns, or performing semantic search across large source trees. Requires no authentication. The `github` MCP requires `export GITHUB_TOKEN=<your-token>` in your shell.
+Use `context-creator` when researching unfamiliar codebases, analyzing remote repositories for patterns, or performing semantic search across large source trees. Requires no authentication.
+
+### Setting up the `github` MCP token
+
+The `github` MCP requires a `GITHUB_TOKEN` (personal access token with `repo` scope). A
+shell `export` is insufficient — Claude Code spawns MCP servers as child processes that do
+not inherit interactive shell state.
+
+**Windows (recommended):** Persist the token at the user-environment level so all processes
+including VS Code, Windows Terminal, and Claude Code desktop inherit it automatically:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", "ghp_...", "User")
+```
+
+Then restart Claude Code.
+
+**All platforms (file-based):** Add the token to `.claude/settings.local.json` (gitignored):
+
+```json
+{
+  "env": {
+    "GITHUB_TOKEN": "ghp_..."
+  }
+}
+```
+
+### Setting up `context-creator` on Windows
+
+`context-creator` runs via `npx`. On Windows, `npx` is a `.cmd` wrapper that is only
+executable when the PATH is inherited correctly. Ensure Node.js was installed via the
+**official installer** (nodejs.org) — not nvm-windows or fnm — so `npx` lands in the
+system-level PATH. Verify with:
+
+```powershell
+where npx
+```
+
+If `where npx` returns a path, `context-creator` will work. If not, reinstall Node.js from
+nodejs.org and restart your terminal and Claude Code.
