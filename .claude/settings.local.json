@@ -1,7 +1,0 @@
-{
-  "enabledMcpjsonServers": [
-    "context-creator",
-    "github",
-    "git"
-  ]
-}

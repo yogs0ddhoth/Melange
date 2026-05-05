@@ -1,4 +1,9 @@
 {
+  "enabledMcpjsonServers": [
+    "context-creator",
+    "github",
+    "git"
+  ],
   "hooks": {
     "PreToolUse": [
       {
