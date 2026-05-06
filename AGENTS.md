@@ -222,10 +222,12 @@ Configured in `.mcp.json` and available to all agents:
 | Server | When to use |
 |--------|-------------|
 | `context-creator` | Analyzing unfamiliar code, exploring remote repositories, semantic search |
-| `github` | PR review, issue lookup, CI status (needs `GITHUB_TOKEN` env var) |
+| `github` | PR review, issue lookup, CI status (needs `GITHUB_PERSONAL_ACCESS_TOKEN` env var) |
 | `git` | Structured log/blame/diff output when Bash git results are too noisy |
 
 Prefer `context-creator` over spawning an Explore subagent when the question is narrow and answerable in one call. Use `analyze_remote` to study reference implementations without cloning.
+
+**GitHub operations use the MCP server exclusively.** Never use `gh` CLI as a fallback. If a `mcp__github__*` call fails, surface the error and stop — do not retry with `gh`. The `gh` binary is not a project dependency and may not be on the PATH.
 
 ## Session Completion Protocol
 
