@@ -183,7 +183,7 @@ here):
 }
 ```
 
-Note: `GITHUB_TOKEN` is not read by the MCP server — use `GITHUB_PERSONAL_ACCESS_TOKEN`
+Note: use `GITHUB_PERSONAL_ACCESS_TOKEN`
 exactly. The `.mcp.json` file has no `env` block for the github server; the token must be
 in the process environment directly.
 

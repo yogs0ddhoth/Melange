@@ -217,8 +217,7 @@ The `github` MCP requires `GITHUB_PERSONAL_ACCESS_TOKEN` (a personal access toke
 `repo` scope). A shell `export` is insufficient — Claude Code spawns MCP servers as child
 processes that do not inherit interactive shell state.
 
-**Important:** use the exact env var name `GITHUB_PERSONAL_ACCESS_TOKEN`. `GITHUB_TOKEN`
-is not read by the server. The `.mcp.json` has no `env` block — the token must be in the
+**Important:** use the exact env var name `GITHUB_PERSONAL_ACCESS_TOKEN`. The `.mcp.json` has no `env` block — the token must be in the
 process environment directly.
 
 **Windows (recommended):** Persist the token at the user-environment level so all processes
