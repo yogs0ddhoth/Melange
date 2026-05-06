@@ -109,6 +109,20 @@ The `/quality` full gate validates commit messages and reports the implied bump.
 `/changelog` skill reads commit types to categorize changes automatically — no manual
 categorization needed.
 
+**Co-authorship trailers**
+
+Every commit produced with Claude assistance must carry co-authorship for both the human
+and the model. Add these two trailers to every Claude-assisted commit message:
+
+```
+Co-Authored-By: Your Name <you@example.com>
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+```
+
+Use the human identity from `git config user.name` and `git config user.email`. Use the
+exact Claude model ID from the active session (e.g. `claude-sonnet-4-6`). This applies
+to all commits on Claude-assisted branches — not just the merge commit.
+
 ### Without Claude Code
 
 You do not need Claude Code to contribute. Use the commands in `CLAUDE.md`'s Commands table directly in your terminal — build, test, lint, and format are all plain shell commands. Read `docs/adr/` before touching a component that has a recorded decision, and open a PR when your branch is ready.
@@ -209,3 +223,49 @@ Claude runs a pre-deploy checklist (quality gate passed, changelog present, no u
 | `TEMPLATE_VERSION` | Canonical framework version anchor — stamped into `MEMORY.md` at `/init` time so initialized projects can trace their baseline |
 
 **Team note:** `.claude/memory/MEMORY.md` is git-tracked. When a Claude session discovers a non-obvious constraint or confirmed standard, it commits an update to this file. Treat merge conflicts in MEMORY.md like any other conflict — keep whichever version reflects current truth, and manually merge if both sides added valid facts.
+
+### Upgrading the framework
+
+Framework improvements — new skills, hooks, agents, governance files — are published as
+tagged releases in the Melange repository. Universal files (listed in
+[`TEMPLATE.md`](TEMPLATE.md)) contain no project-specific content and can be overwritten
+directly. Project files (`CLAUDE.md`, `README.md`, `.claude/memory/MEMORY.md`, etc.)
+diverged at `/init` time and require manual merge.
+
+**1. Find your current version**
+
+```bash
+grep "Framework version" .claude/memory/MEMORY.md
+```
+
+**2. Review what changed**
+
+```bash
+# Clone from the same URL you originally used to set up this project
+git clone <melange-repo-url> melange-upstream
+git -C melange-upstream diff v0.1.0..v0.2.0 -- AGENTS.md   # repeat for each universal file
+```
+
+**3. Apply universal files**
+
+```bash
+cp melange-upstream/AGENTS.md AGENTS.md
+cp melange-upstream/ETHOS.md ETHOS.md
+# repeat for each universal file listed in TEMPLATE.md
+```
+
+**4. Merge project files manually**
+
+```bash
+# Read the diff; apply relevant changes by hand — do not overwrite
+git -C melange-upstream diff v0.1.0..v0.2.0 -- CLAUDE.md
+```
+
+**5. Update the version record and commit**
+
+Edit `.claude/memory/MEMORY.md` and update `Framework version` to the new version, then:
+
+```bash
+git add -A
+git commit -m "chore: upgrade Melange framework to v0.2.0"
+```

@@ -89,15 +89,8 @@ docs/security/
 
 ## Upgrading an initialized project
 
-To pull in improvements from a newer framework version:
+See the **Upgrading the framework** section of `README.md` for the step-by-step
+procedure — that section is the canonical source.
 
-1. Identify the version your project was initialized from (`MEMORY.md` → Core Facts →
-   `Framework version`)
-2. Find the framework repo tag for that version and the target version
-3. Run `git diff <old-tag>..<new-tag> -- <universal-file>` for each universal file you
-   want to review
-4. Apply changes to universal files — they contain no project-specific content, so a
-   direct overwrite is safe
-5. For project files (especially `CLAUDE.md`), review the diff and merge manually —
-   your project-specific content must be preserved
-6. Update `Framework version` in `MEMORY.md` to the new version
+Quick reference: universal files (listed above) are safe to overwrite. Project files
+(listed above) must be merged manually to preserve project-specific content.

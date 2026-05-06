@@ -206,22 +206,25 @@ Three MCP servers are configured in `.mcp.json` and available in every Claude Co
 | Server | Purpose |
 |--------|---------|
 | `context-creator` | Codebase analysis — `analyze_local`, `analyze_remote`, `semantic_search`, `diff`, `search` |
-| `github` | GitHub API — PRs, issues, reviews, checks (requires `GITHUB_TOKEN` env var) |
+| `github` | GitHub API — PRs, issues, reviews, checks (requires `GITHUB_PERSONAL_ACCESS_TOKEN` env var) |
 | `git` | Local git operations — log, blame, diff, status with structured output |
 
 Use `context-creator` when researching unfamiliar codebases, analyzing remote repositories for patterns, or performing semantic search across large source trees. Requires no authentication.
 
 ### Setting up the `github` MCP token
 
-The `github` MCP requires a `GITHUB_TOKEN` (personal access token with `repo` scope). A
-shell `export` is insufficient — Claude Code spawns MCP servers as child processes that do
-not inherit interactive shell state.
+The `github` MCP requires `GITHUB_PERSONAL_ACCESS_TOKEN` (a personal access token with
+`repo` scope). A shell `export` is insufficient — Claude Code spawns MCP servers as child
+processes that do not inherit interactive shell state.
+
+**Important:** use the exact env var name `GITHUB_PERSONAL_ACCESS_TOKEN`. The `.mcp.json` has no `env` block — the token must be in the
+process environment directly.
 
 **Windows (recommended):** Persist the token at the user-environment level so all processes
 including VS Code, Windows Terminal, and Claude Code desktop inherit it automatically:
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", "ghp_...", "User")
+[System.Environment]::SetEnvironmentVariable("GITHUB_PERSONAL_ACCESS_TOKEN", "ghp_...", "User")
 ```
 
 Then restart Claude Code.
@@ -231,7 +234,7 @@ Then restart Claude Code.
 ```json
 {
   "env": {
-    "GITHUB_TOKEN": "ghp_..."
+    "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_..."
   }
 }
 ```

@@ -155,21 +155,21 @@ Verify by opening Claude Code and sending any message. You should see
 
 Two of the three MCP servers need one-time setup on Windows.
 
-#### `github` MCP — GITHUB_TOKEN
+#### `github` MCP — GITHUB_PERSONAL_ACCESS_TOKEN
 
-The MCP server requires a GitHub personal access token with `repo` scope. A shell `export`
-does not reach Claude Code's child processes on Windows. Use the Windows user-environment
-registry instead — it propagates to all processes including VS Code, Windows Terminal, and
-Claude Code desktop:
+The MCP server requires a GitHub personal access token with `repo` scope set as
+`GITHUB_PERSONAL_ACCESS_TOKEN`. A shell `export` does not reach Claude Code's child
+processes on Windows. Use the Windows user-environment registry instead — it propagates
+to all processes including VS Code, Windows Terminal, and Claude Code desktop:
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", "ghp_...", "User")
+[System.Environment]::SetEnvironmentVariable("GITHUB_PERSONAL_ACCESS_TOKEN", "ghp_...", "User")
 ```
 
 Restart Claude Code after setting. Verify the token is live:
 
 ```powershell
-[System.Environment]::GetEnvironmentVariable("GITHUB_TOKEN", "User")
+[System.Environment]::GetEnvironmentVariable("GITHUB_PERSONAL_ACCESS_TOKEN", "User")
 ```
 
 Alternatively, add it to `.claude/settings.local.json` (gitignored — safe to write secrets
@@ -178,10 +178,14 @@ here):
 ```json
 {
   "env": {
-    "GITHUB_TOKEN": "ghp_..."
+    "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_..."
   }
 }
 ```
+
+Note: use `GITHUB_PERSONAL_ACCESS_TOKEN`
+exactly. The `.mcp.json` file has no `env` block for the github server; the token must be
+in the process environment directly.
 
 #### `context-creator` MCP — Node.js PATH
 
